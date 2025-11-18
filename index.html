@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AuraBean Password Reset</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="reset.js"></script>
+</head>
+<body>
+  <main class="card">
+    <section class="header">
+      <div class="logo" aria-hidden="true">
+        <div class="dot"></div>
+        <div class="trail"></div>
+      </div>
+      <p class="eyebrow">Password reset</p>
+      <h1>Let’s reopen AuraBean</h1>
+      <p class="lede">This page confirms your Supabase reset link and hands it back to the AuraBean app.</p>
+    </section>
+
+    <section class="status-block" id="statusBlock">
+      <div class="spinner" aria-hidden="true"></div>
+      <div>
+        <p class="status" id="statusText">Reading reset link…</p>
+        <p class="muted" id="statusSubtext">Keep this tab open. We’ll open the AuraBean app automatically.</p>
+      </div>
+    </section>
+
+    <section id="codeCard" class="code-card hidden">
+      <h2>Reset code</h2>
+      <p class="muted">If AuraBean does not open automatically, tap the button below or copy the code and paste it inside the app.</p>
+      <div class="code-row">
+        <code id="codeValue" aria-live="polite"></code>
+        <button type="button" id="copyButton">Copy</button>
+      </div>
+      <p class="muted" id="emailHint"></p>
+    </section>
+
+    <div class="actions">
+      <button type="button" id="openAppButton" class="hidden primary">
+        Open AuraBean
+      </button>
+    </div>
+
+    <section class="footnotes">
+      <p class="muted">Still stuck? Open AuraBean manually, return to the sign-in screen, and choose “I already have a code”.</p>
+      <p class="muted small">This page is static, does not store any data, and only exists to bridge Supabase with the AuraBean deep link.</p>
+    </section>
+  </main>
+
+  <noscript>
+    <div class="noscript">
+      <p>This page needs JavaScript enabled to forward the password reset link. Copy the entire URL from this browser tab and contact support if you need help.</p>
+    </div>
+  </noscript>
+</body>
+</html>
