@@ -22,9 +22,9 @@
     return;
   }
 
-  if (!state.code) {
+  if (!(state.code || state.tokenHash || state.accessToken)) {
     finishWithError(
-      'We could not read your reset code.',
+      'We could not read your reset credentials.',
       'Copy the entire URL from this tab and send it to AuraBean support so we can investigate.'
     );
     return;
@@ -35,14 +35,14 @@
   openAppButtonEl.addEventListener('click', () => {
     statusTextEl.textContent = 'Trying to open AuraBean…';
     statusSubtextEl.textContent = 'Return to this tab if the app does not pick up the code.';
-    launchApp(state.code, state.email);
+    launchApp(state);
   });
 
   statusTextEl.textContent = 'Reset link verified.';
   statusSubtextEl.textContent = 'If AuraBean stays closed, tap “Open AuraBean” below.';
   stopSpinner();
 
-  window.setTimeout(() => launchApp(state.code, state.email), AUTO_OPEN_DELAY);
+  window.setTimeout(() => launchApp(state), AUTO_OPEN_DELAY);
   window.setTimeout(() => {
     statusSubtextEl.textContent = 'Tap “Open AuraBean” if nothing happened automatically.';
   }, REMINDER_DELAY);
@@ -65,24 +65,35 @@
       return null;
     };
 
-    const code = getFirst(['code', 'token_hash', 'access_token', 'recovery_token']);
+    const code = getFirst(['code', 'token', 'recovery_token']);
+    const tokenHash = getFirst(['token_hash']);
+    const accessToken = getFirst(['access_token']);
+    const refreshToken = getFirst(['refresh_token']);
+    const tokenType = getFirst(['token_type']);
+    const expiresIn = getFirst(['expires_in']);
     const email = getFirst(['email', 'user_email', 'email_address']);
     const linkType = (getFirst(['type', 'event_type']) || 'recovery').toLowerCase();
 
     return {
       code,
+      tokenHash,
       email,
       linkType,
+      accessToken,
+      refreshToken,
+      tokenType,
+      expiresIn,
       isRecoveryLink: linkType === 'recovery',
     };
   }
 
-  function showCode({ code, email }) {
+  function showCode({ tokenHash, code, email }) {
     codeCardEl.classList.remove('hidden');
-    codeValueEl.textContent = code;
+    const displayCode = tokenHash || code || 'Unknown';
+    codeValueEl.textContent = displayCode;
     copyButtonEl.addEventListener('click', async () => {
       try {
-        await navigator.clipboard.writeText(code);
+        await navigator.clipboard.writeText(displayCode);
         const original = copyButtonEl.textContent;
         copyButtonEl.textContent = 'Copied';
         copyButtonEl.disabled = true;
@@ -102,12 +113,15 @@
     }
   }
 
-  function launchApp(code, email) {
+  function launchApp({ code, email, tokenHash, accessToken, refreshToken, tokenType, expiresIn }) {
     const target = new URL(APP_SCHEME_URL);
-    target.searchParams.set('code', code);
-    if (email) {
-      target.searchParams.set('email', email);
-    }
+    if (code) target.searchParams.set('code', code);
+    if (email) target.searchParams.set('email', email);
+    if (tokenHash) target.searchParams.set('token_hash', tokenHash);
+    if (accessToken) target.searchParams.set('access_token', accessToken);
+    if (refreshToken) target.searchParams.set('refresh_token', refreshToken);
+    if (tokenType) target.searchParams.set('token_type', tokenType);
+    if (expiresIn) target.searchParams.set('expires_in', expiresIn);
     window.location.assign(target.toString());
   }
 
