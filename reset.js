@@ -35,14 +35,14 @@
   openAppButtonEl.addEventListener('click', () => {
     statusTextEl.textContent = 'Trying to open AuraBean…';
     statusSubtextEl.textContent = 'Return to this tab if the app does not pick up the code.';
-    launchApp(state.code);
+    launchApp(state.code, state.email);
   });
 
   statusTextEl.textContent = 'Reset link verified.';
   statusSubtextEl.textContent = 'If AuraBean stays closed, tap “Open AuraBean” below.';
   stopSpinner();
 
-  window.setTimeout(() => launchApp(state.code), AUTO_OPEN_DELAY);
+  window.setTimeout(() => launchApp(state.code, state.email), AUTO_OPEN_DELAY);
   window.setTimeout(() => {
     statusSubtextEl.textContent = 'Tap “Open AuraBean” if nothing happened automatically.';
   }, REMINDER_DELAY);
@@ -102,9 +102,13 @@
     }
   }
 
-  function launchApp(code) {
-    const target = `${APP_SCHEME_URL}?code=${encodeURIComponent(code)}`;
-    window.location.assign(target);
+  function launchApp(code, email) {
+    const target = new URL(APP_SCHEME_URL);
+    target.searchParams.set('code', code);
+    if (email) {
+      target.searchParams.set('email', email);
+    }
+    window.location.assign(target.toString());
   }
 
   function finishWithError(message, subtext) {
