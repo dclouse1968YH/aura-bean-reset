@@ -22,7 +22,7 @@
     return;
   }
 
-  if (!(state.code || state.tokenHash || state.accessToken)) {
+  if (!(state.code || state.token || state.tokenHash || state.accessToken)) {
     finishWithError(
       'We could not read your reset credentials.',
       'Copy the entire URL from this tab and send it to AuraBean support so we can investigate.'
@@ -65,7 +65,8 @@
       return null;
     };
 
-    const code = getFirst(['code', 'token', 'recovery_token']);
+    const code = getFirst(['code']);
+    const token = getFirst(['token', 'recovery_token']);
     const tokenHash = getFirst(['token_hash']);
     const accessToken = getFirst(['access_token']);
     const refreshToken = getFirst(['refresh_token']);
@@ -77,6 +78,7 @@
     return {
       code,
       tokenHash,
+      token,
       email,
       linkType,
       accessToken,
@@ -87,9 +89,9 @@
     };
   }
 
-  function showCode({ tokenHash, code, email }) {
+  function showCode({ tokenHash, code, token, email }) {
     codeCardEl.classList.remove('hidden');
-    const displayCode = tokenHash || code || 'Unknown';
+    const displayCode = tokenHash || code || token || 'Unknown';
     codeValueEl.textContent = displayCode;
     copyButtonEl.addEventListener('click', async () => {
       try {
@@ -113,9 +115,10 @@
     }
   }
 
-  function launchApp({ code, email, tokenHash, accessToken, refreshToken, tokenType, expiresIn }) {
+  function launchApp({ code, token, email, tokenHash, accessToken, refreshToken, tokenType, expiresIn }) {
     const target = new URL(APP_SCHEME_URL);
     if (code) target.searchParams.set('code', code);
+    if (token) target.searchParams.set('token', token);
     if (email) target.searchParams.set('email', email);
     if (tokenHash) target.searchParams.set('token_hash', tokenHash);
     if (accessToken) target.searchParams.set('access_token', accessToken);
