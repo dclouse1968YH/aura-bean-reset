@@ -15,34 +15,16 @@
 
   const state = parseResetState();
 
-  // Detect if this is email confirmation vs password reset
-  // Email confirmation has access_token but no specific recovery markers
-  const isEmailConfirmation = state.linkType === 'signup' ||
-                              state.linkType === 'invite' ||
-                              (state.accessToken && !state.isRecoveryLink);
-
-  // Handle email confirmation (signup)
-  if (isEmailConfirmation) {
-    statusTextEl.textContent = 'Email confirmed!';
-    statusSubtextEl.textContent = 'You can now close this page and sign in.';
-    stopSpinner();
-    if (statusBlockEl) {
-      statusBlockEl.classList.add('success');
-    }
-    codeCardEl.classList.add('hidden');
-    openAppButtonEl.classList.add('hidden');
-    return;
-  }
-
-  // Handle password reset
-  if (!(state.code || state.token || state.tokenHash)) {
+  // Validate we have reset credentials
+  if (!(state.code || state.token || state.tokenHash || state.accessToken)) {
     finishWithError(
-      'Could not read credentials.',
+      'Could not read reset credentials.',
       'Copy the entire URL and contact support if you need help.'
     );
     return;
   }
 
+  // Show the reset code
   showCode(state);
   openAppButtonEl.classList.remove('hidden');
   openAppButtonEl.addEventListener('click', () => {
@@ -55,9 +37,10 @@
   statusSubtextEl.textContent = 'Opening the app automatically…';
   stopSpinner();
 
+  // Try to open mobile app automatically
   window.setTimeout(() => launchApp(state), AUTO_OPEN_DELAY);
   window.setTimeout(() => {
-    statusSubtextEl.textContent = 'Tap "Continue" below if the app did not open.';
+    statusSubtextEl.textContent = 'Tap "Open App" below if nothing happened.';
   }, REMINDER_DELAY);
 
   function parseResetState() {
@@ -86,19 +69,16 @@
     const tokenType = getFirst(['token_type']);
     const expiresIn = getFirst(['expires_in']);
     const email = getFirst(['email', 'user_email', 'email_address']);
-    const linkType = (getFirst(['type', 'event_type']) || 'recovery').toLowerCase();
 
     return {
       code,
       tokenHash,
       token,
       email,
-      linkType,
       accessToken,
       refreshToken,
       tokenType,
       expiresIn,
-      isRecoveryLink: linkType === 'recovery',
     };
   }
 
