@@ -11,21 +11,36 @@
   const emailHintEl = document.getElementById('emailHint');
   const openAppButtonEl = document.getElementById('openAppButton');
   const spinnerEl = document.querySelector('.spinner');
+  const statusBlockEl = document.getElementById('statusBlock');
 
   const state = parseResetState();
 
+  // Handle email confirmation (signup)
+  if (state.linkType === 'signup' || state.linkType === 'invite') {
+    statusTextEl.textContent = 'Email confirmed!';
+    statusSubtextEl.textContent = 'You can now close this page and sign in.';
+    stopSpinner();
+    if (statusBlockEl) {
+      statusBlockEl.classList.add('success');
+    }
+    codeCardEl.classList.add('hidden');
+    openAppButtonEl.classList.add('hidden');
+    return;
+  }
+
+  // Handle password reset
   if (!state.isRecoveryLink) {
     finishWithError(
-      'This link is not a password reset link.',
-      `We received type “${state.linkType}”. Please request a new reset email from AuraBean.`
+      'Invalid confirmation link.',
+      `We received type "${state.linkType}". Please request a new email.`
     );
     return;
   }
 
   if (!(state.code || state.token || state.tokenHash || state.accessToken)) {
     finishWithError(
-      'We could not read your reset credentials.',
-      'Copy the entire URL from this tab and send it to AuraBean support so we can investigate.'
+      'Could not read credentials.',
+      'Copy the entire URL and contact support if you need help.'
     );
     return;
   }
@@ -33,18 +48,18 @@
   showCode(state);
   openAppButtonEl.classList.remove('hidden');
   openAppButtonEl.addEventListener('click', () => {
-    statusTextEl.textContent = 'Trying to open AuraBean…';
-    statusSubtextEl.textContent = 'Return to this tab if the app does not pick up the code.';
+    statusTextEl.textContent = 'Opening app…';
+    statusSubtextEl.textContent = 'Return to this tab if the app does not open.';
     launchApp(state);
   });
 
   statusTextEl.textContent = 'Reset link verified.';
-  statusSubtextEl.textContent = 'If AuraBean stays closed, tap “Open AuraBean” below.';
+  statusSubtextEl.textContent = 'Opening the app automatically…';
   stopSpinner();
 
   window.setTimeout(() => launchApp(state), AUTO_OPEN_DELAY);
   window.setTimeout(() => {
-    statusSubtextEl.textContent = 'Tap “Open AuraBean” if nothing happened automatically.';
+    statusSubtextEl.textContent = 'Tap "Continue" below if the app did not open.';
   }, REMINDER_DELAY);
 
   function parseResetState() {
@@ -109,7 +124,7 @@
     });
 
     if (email) {
-      emailHintEl.textContent = `We detected this link belongs to ${email}.`;
+      emailHintEl.textContent = `For account: ${email}`;
     } else {
       emailHintEl.textContent = '';
     }
@@ -134,6 +149,9 @@
     statusSubtextEl.textContent = subtext;
     codeCardEl.classList.add('hidden');
     openAppButtonEl.classList.add('hidden');
+    if (statusBlockEl) {
+      statusBlockEl.classList.add('error');
+    }
   }
 
   function stopSpinner() {
