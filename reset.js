@@ -15,8 +15,14 @@
 
   const state = parseResetState();
 
+  // Detect if this is email confirmation vs password reset
+  // Email confirmation has access_token but no specific recovery markers
+  const isEmailConfirmation = state.linkType === 'signup' ||
+                              state.linkType === 'invite' ||
+                              (state.accessToken && !state.isRecoveryLink);
+
   // Handle email confirmation (signup)
-  if (state.linkType === 'signup' || state.linkType === 'invite') {
+  if (isEmailConfirmation) {
     statusTextEl.textContent = 'Email confirmed!';
     statusSubtextEl.textContent = 'You can now close this page and sign in.';
     stopSpinner();
@@ -29,15 +35,7 @@
   }
 
   // Handle password reset
-  if (!state.isRecoveryLink) {
-    finishWithError(
-      'Invalid confirmation link.',
-      `We received type "${state.linkType}". Please request a new email.`
-    );
-    return;
-  }
-
-  if (!(state.code || state.token || state.tokenHash || state.accessToken)) {
+  if (!(state.code || state.token || state.tokenHash)) {
     finishWithError(
       'Could not read credentials.',
       'Copy the entire URL and contact support if you need help.'
